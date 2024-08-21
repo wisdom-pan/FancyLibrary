@@ -22,40 +22,28 @@ pipe = KolorsPipeline.from_pretrained(
 ).to(device)
 
 
-prompt = '一张瓢虫的照片，微距，变焦，高质量，电影，拿着一个牌子，写着"可图"'
-
-
-
-
-
-
-
-
-
-
-input = gr.Text(label = "输入文字")
-
+# prompt = '一张瓢虫的照片，微距，变焦，高质量，电影，拿着一个牌子，写着"可图"'
 
 # examples = [f"./example{i}.jpg" for i in range(1,7)]
+def text2img(prompt):
+    image = pipe(
+        prompt=prompt,
+        negative_prompt="",
+        guidance_scale=5.0,
+        num_inference_steps=50,
+        generator=torch.Generator(pipe.device).manual_seed(66),
+    ).images[0]
+    return image
 
-image = pipe(
-    prompt=input,
-    negative_prompt="",
-    guidance_scale=5.0,
-    num_inference_steps=50,
-    generator=torch.Generator(pipe.device).manual_seed(66),
-).images[0]
-image.show()
-output = gr.Image(image)
 
 title = "kolors测试"
 description = ""
 interface = gr.Interface(
-        fn=image,
+        fn=text2img,
         description=description,
-        inputs = input,
+        inputs = gr.Text(label = "输入文字"),
         theme=gr.themes.Glass(),
-        outputs=output,
+        outputs=gr.Image(),
         # examples = examples,
         title=title,
         allow_flagging="never"
