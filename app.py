@@ -1,7 +1,9 @@
 import torch
 import os
 from diffusers import DiffusionPipeline
+from diffusers import KolorsPipeline
 import gradio as gr
+
 
 #执行上面脚本时，请设置环境变量：
 os.environ['HF_ENDPOINT'] = 'https://hf-api.gitee.com'
@@ -13,7 +15,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-pipe = DiffusionPipeline.from_pretrained(
+pipe = KolorsPipeline.from_pretrained(
     "Kwai-Kolors/Kolors-diffusers",
     torch_dtype=torch.float16,
     variant="fp16"
