@@ -35,7 +35,7 @@ prompt = '一张瓢虫的照片，微距，变焦，高质量，电影，拿着�
 
 input = gr.Text(label = "输入文字")
 
-output = gr.components.Image(label="Upload any Image", type = 'pil', optional=True)
+
 # examples = [f"./example{i}.jpg" for i in range(1,7)]
 
 image = pipe(
@@ -46,6 +46,7 @@ image = pipe(
     generator=torch.Generator(pipe.device).manual_seed(66),
 ).images[0]
 image.show()
+output = gr.Image(image)
 
 title = "kolors测试"
 description = ""
