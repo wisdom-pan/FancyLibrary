@@ -15,8 +15,8 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-pipe = KolorsPipeline.from_pretrained(
-    "Kwai-Kolors/Kolors-diffusers",
+pipe = DiffusionPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0",
     torch_dtype=torch.float16,
     variant="fp16"
 ).to(device)
