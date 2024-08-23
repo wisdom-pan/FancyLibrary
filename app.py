@@ -1,6 +1,6 @@
 import torch
 import os
-from diffusers import DiffusionPipeline
+from diffusers import StableDiffusion3Pipeline
 from diffusers import KolorsPipeline
 import gradio as gr
 
@@ -15,7 +15,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-pipe = DiffusionPipeline.from_pretrained(
+pipe = StableDiffusion3Pipeline.from_pretrained(
     "stabilityai/stable-diffusion-xl-base-1.0",
     torch_dtype=torch.float16,
     variant="fp16"
