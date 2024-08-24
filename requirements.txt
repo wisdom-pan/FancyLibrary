@@ -6,4 +6,3 @@ sentencepiece==0.1.99
 numpy
 transformers==4.40.2
 timm
-https://github.com/Dao-AILab/flash-attention/releases/download/v2.6.2/flash_attn-2.6.2+cu123torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
