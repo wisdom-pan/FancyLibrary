@@ -252,8 +252,9 @@ print("emb model load success!")
 print("gen model load begin...")
 gen_model_path = 'openbmb/MiniCPM-V-2_6'
 gen_tokenizer = AutoTokenizer.from_pretrained(gen_model_path, trust_remote_code=True)
-gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True, attn_implementation='sdpa',
-                                      torch_dtype=torch.bfloat16)
+# gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True, attn_implementation='sdpa',
+#                                       torch_dtype=torch.bfloat16)
+gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True,torch_dtype=torch.bfloat16)
 gen_model.eval()
 gen_model.to(device)
 print("gen model load success!")
