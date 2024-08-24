@@ -5,16 +5,11 @@
 # @date: 2024/08/22
 #
 
-
 import tqdm
-from PIL import Image
 import hashlib
-import torch
 import fitz
-import threading
 import gradio as gr
 import spaces
-import os
 from transformers import AutoModel
 from transformers import AutoTokenizer
 from PIL import Image
@@ -22,9 +17,10 @@ import torch
 import os
 import numpy as np
 import json
-# os.environ['HF_ENDPOINT'] = 'https://hf-api.gitee.com'
+import cv2
+os.environ['HF_ENDPOINT'] = 'https://hf-api.gitee.com'
 #执行上面脚本时，请设置环境变量：
-os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+# os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 os.environ['HF_HOME'] = '~/.cache/gitee-ai'
 
 
@@ -91,8 +87,58 @@ def add_pdf_gradio(pdf_file_binary, progress=gr.Progress()):
 
     return knowledge_base_name
 
+@spaces.GPU(duration=100)
+def add_video_gradio(video_file_binary, progress=gr.Progress()):
+    global model, tokenizer
+    model.eval()
 
-# @spaces.GPU
+    knowledge_base_name = calculate_md5_from_binary(video_file_binary)
+
+    this_cache_dir = os.path.join(cache_dir, knowledge_base_name)
+    os.makedirs(this_cache_dir, exist_ok=True)
+
+    video_path = os.path.join(this_cache_dir, f"src.mp4")
+    with open(video_path, 'wb') as file:
+        file.write(video_file_binary)
+
+    cap = cv2.VideoCapture(video_path)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+
+    reps_list = []
+    images = []
+    image_md5s = []
+
+    for i in progress.tqdm(range(frame_count)):
+        ret, frame = cap.read()
+        if not ret:
+            break
+        image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        image_md5 = get_image_md5(image)
+        image_md5s.append(image_md5)
+        with torch.no_grad():
+            reps = model(text=[''], image=[image], tokenizer=tokenizer).reps
+        reps_list.append(reps.squeeze(0).cpu().numpy())
+        images.append(image)
+
+    cap.release()
+
+    for idx in range(len(images)):
+        image = images[idx]
+        image_md5 = image_md5s[idx]
+        cache_image_path = os.path.join(this_cache_dir, f"{image_md5}.png")
+        image.save(cache_image_path)
+
+    np.save(os.path.join(this_cache_dir, f"reps.npy"), reps_list)
+
+    with open(os.path.join(this_cache_dir, f"md5s.txt"), 'w') as f:
+        for item in image_md5s:
+            f.write(item + '\n')
+
+    return knowledge_base_name
+
+
+@spaces.GPU
 def retrieve_gradio(knowledge_base: str, query: str, topk: int):
     global model, tokenizer
 
@@ -229,15 +275,14 @@ def answer_question(images, question):
 
 
 with gr.Blocks() as app:
-    gr.Markdown("# MiniCPMV-RAG-PDFQA: Two Vision Language Models Enable End-to-End RAG")
+    gr.Markdown("#你的个人图书馆管家FancyLibrary")
 
     gr.Markdown("""
-- 你的个人图书馆管家*FancyLibrary*. 
-- **提出问题**，它会检索最相关的页面，将根据调用的页面回答您的问题。
+- **提出问题**，它会检索最相关的页面，将根据返回top k的页面回答您的问题。
 
-    -可以帮助您阅读较长的图像、文本类的PDF 文档并找到回答您问题的页面。
+    -可以帮助您阅读较长的图像、文本类的PDF以及视频中的与问题相关的关键帧并找到回答您问题的页面。
 
-    - 可以帮助您建立个人图书馆并从大量书籍中检索书籍页面。
+    - 可以帮助您建立个人图书馆并从多模态数据中最相关的页面用于RAG问答系统。
 
     - 用完整的视觉阅读、存储、检索和回答.
 """)
@@ -253,6 +298,13 @@ with gr.Blocks() as app:
     process_button.click(add_pdf_gradio, inputs=[file_input], outputs=file_result)
 
     with gr.Row():
+        video_input = gr.File(type="binary", label="上传你的视频")
+        video_result = gr.Text(label="知识库ID ")
+        process_video_button = gr.Button("处理视频（视频上传成功后才可点击）")
+
+    process_video_button.click(add_video_gradio, inputs=[video_input], outputs=video_result)
+
+    with gr.Row():
         kb_id_input = gr.Text(label="您的知识库 ID（在此处粘贴您的知识库 ID，可重复使用：）")
         query_input = gr.Text(label="输入你的问题")
         topk_input = inputs = gr.Number(value=5, minimum=1, maximum=10, step=1, label="要检索的页数，1-10页")
@@ -260,8 +312,7 @@ with gr.Blocks() as app:
 
     with gr.Row():
         images_output = gr.Gallery(label="检索页面")
-
-    retrieve_button.click(retrieve_gradio, inputs=[kb_id_input, query_input, topk_input], outputs=images_output)
+        retrieve_button.click(retrieve_gradio, inputs=[kb_id_input, query_input, topk_input], outputs=images_output)
 
     with gr.Row():
         button = gr.Button("步骤 3：使用检索到的页面回答问题")
