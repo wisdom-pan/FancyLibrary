@@ -8,5 +8,5 @@ transformers==4.40.2
 timm
 opencv-python
 --extra-index-url https://mirrors.aliyun.com/pytorch-wheels/cu121
-torch
-torchvision
+torch==2.1.1
+torchvision==0.16.1
