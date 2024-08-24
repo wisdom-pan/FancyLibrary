@@ -15,6 +15,7 @@ from transformers import AutoTokenizer
 from PIL import Image
 import torch
 import os
+os.environ['PT_SDPA_ENABLE_HEAD_DIM_PADDING'] = '1'
 import numpy as np
 import json
 import cv2
@@ -22,7 +23,7 @@ os.environ['HF_ENDPOINT'] = 'https://hf-api.gitee.com'
 #执行上面脚本时，请设置环境变量：
 # os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 os.environ['HF_HOME'] = '~/.cache/gitee-ai'
-os.environ['PT_SDPA_ENABLE_HEAD_DIM_PADDING'] = '1'
+
 
 cache_dir = '/data/kb_cache'
 os.makedirs(cache_dir, exist_ok=True)
