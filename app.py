@@ -73,6 +73,8 @@ def add_pdf_gradio(pdf_file_binary, progress=gr.Progress()):
             reps = model(text=[''], image=[image], tokenizer=tokenizer).reps
         reps_list.append(reps.squeeze(0).cpu().numpy())
         images.append(image)
+    # 释放 embedding 模型占用的显存
+    # release_gpu_memory()
 
     for idx in range(len(images)):
         image = images[idx]
@@ -123,6 +125,8 @@ def add_video_gradio(video_file_binary, progress=gr.Progress()):
         images.append(image)
 
     cap.release()
+    # 释放 embedding 模型占用的显存
+    # release_gpu_memory()
 
     for idx in range(len(images)):
         image = images[idx]
@@ -185,7 +189,8 @@ def retrieve_gradio(knowledge_base: str, query: str, topk: int):
                 "retrived_docs": [os.path.join(target_cache_dir, f"{md5s[idx]}.png") for idx in topk_doc_ids_np]
             }, indent=4, ensure_ascii=False
         ))
-
+    # 释放 embedding 模型占用的显存
+    release_gpu_memory()
     return images_topk
 
 
@@ -251,17 +256,20 @@ model.to(device)
 print("emb model load success!")
 
 print("gen model load begin...")
-# gen_model_path = 'openbmb/MiniCPM-V-2_6'
-gen_model_path = 'openbmb/MiniCPM-V-2_6-int4'
+gen_model_path = 'openbmb/MiniCPM-V-2_6'
+# gen_model_path = 'openbmb/MiniCPM-V-2_6-int4'
 gen_tokenizer = AutoTokenizer.from_pretrained(gen_model_path, trust_remote_code=True)
 # gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True, attn_implementation='sdpa',
 #                                       torch_dtype=torch.bfloat16)
-# gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True,torch_dtype=torch.bfloat16)
-gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True)
+gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True,torch_dtype=torch.bfloat16)
 gen_model.eval()
-# gen_model.to(device)
+gen_model.to(device)
 print("gen model load success!")
 
+# 用于释放显存
+def release_gpu_memory():
+    del model, tokenizer
+    torch.cuda.empty_cache()
 
 @spaces.GPU(duration=50)
 def answer_question(images, question):
@@ -324,7 +332,6 @@ with gr.Blocks() as app:
         gen_model_response = gr.Textbox(label="检索响应")
 
         button.click(fn=answer_question, inputs=[images_output, query_input], outputs=gen_model_response)
-
     with gr.Row():
         downvote_button = gr.Button("👍赞一下")
         upvote_button = gr.Button("👎踩一下")
