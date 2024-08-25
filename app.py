@@ -268,6 +268,7 @@ print("gen model load success!")
 
 # 用于释放显存
 def release_gpu_memory():
+    global model, tokenizer
     del model, tokenizer
     torch.cuda.empty_cache()
 
