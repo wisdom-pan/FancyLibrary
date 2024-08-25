@@ -145,10 +145,11 @@ def add_video_gradio(video_file_binary, progress=gr.Progress()):
 
 @spaces.GPU
 def retrieve_gradio(knowledge_base: str, query: str, topk: int):
-    # global model, tokenizer
-    model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
+    # model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
+    # model.eval()
+    # model.to(device)
+    global model, tokenizer
     model.eval()
-    model.to(device)
 
 
     target_cache_dir = os.path.join(cache_dir, knowledge_base)
