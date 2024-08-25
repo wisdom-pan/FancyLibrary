@@ -259,7 +259,7 @@ gen_tokenizer = AutoTokenizer.from_pretrained(gen_model_path, trust_remote_code=
 # gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True,torch_dtype=torch.bfloat16)
 gen_model = AutoModel.from_pretrained(gen_model_path, trust_remote_code=True)
 gen_model.eval()
-gen_model.to(device)
+# gen_model.to(device)
 print("gen model load success!")
 
 
