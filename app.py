@@ -4,6 +4,8 @@
 # @author: wisdom-pan <wisdompan1@outlook.com>
 # @date: 2024/08/22
 #
+import os
+os.environ['PT_SDPA_ENABLE_HEAD_DIM_PADDING'] = '1'
 
 import tqdm
 import hashlib
@@ -14,8 +16,6 @@ from transformers import AutoModel
 from transformers import AutoTokenizer
 from PIL import Image
 import torch
-import os
-os.environ['PT_SDPA_ENABLE_HEAD_DIM_PADDING'] = '1'
 import numpy as np
 import json
 import cv2
