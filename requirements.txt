@@ -8,6 +8,7 @@ transformers==4.40.2
 timm
 opencv-python
 decord==0.6.0
+bitsandbytes==0.43.1
 --extra-index-url https://mirrors.aliyun.com/pytorch-wheels/cu121
 torch
 torchvision
