@@ -46,6 +46,7 @@ def calculate_md5_from_binary(binary_data):
 @spaces.GPU(duration=100)
 def add_pdf_gradio(pdf_file_binary, progress=gr.Progress()):
     global model, tokenizer
+    load_model()
     model.eval()
 
     knowledge_base_name = calculate_md5_from_binary(pdf_file_binary)
@@ -93,6 +94,7 @@ def add_pdf_gradio(pdf_file_binary, progress=gr.Progress()):
 @spaces.GPU(duration=100)
 def add_video_gradio(video_file_binary, progress=gr.Progress()):
     global model, tokenizer
+    load_model()
     model.eval()
 
     knowledge_base_name = calculate_md5_from_binary(video_file_binary)
@@ -145,10 +147,7 @@ def add_video_gradio(video_file_binary, progress=gr.Progress()):
 
 @spaces.GPU
 def retrieve_gradio(knowledge_base: str, query: str, topk: int):
-    # model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
-    # model.eval()
-    # model.to(device)
-    global model, tokenizer
+    load_model()
     model.eval()
 
 
@@ -274,7 +273,16 @@ def release_gpu_memory():
     global model, tokenizer
     del model, tokenizer
     torch.cuda.empty_cache()
-
+def load_model():
+    global model, tokenizer
+    if 'model' not in globals() or 'tokenizer' not in globals():
+        print("Loading model...")
+        model_path = 'RhapsodyAI/minicpm-visual-embedding-v0'  # replace with your local model path
+        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+        model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
+        model.eval()
+        model.to(device)
+        print("Model loaded successfully!")
 @spaces.GPU(duration=50)
 def answer_question(images, question):
     global gen_model, gen_tokenizer
